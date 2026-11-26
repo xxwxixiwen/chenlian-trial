@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#0a0b0d">
+  <title>宸炼 · 网页端</title>
+  <meta name="description" content="宸炼健身教练小程序的网页端：直接运行小程序源码，可完整预览与交互。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23c6ff3d'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' font-family='sans-serif' font-weight='800' fill='%230c0f05'%3E宸%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="shell.css">
+  <link rel="stylesheet" href="pose/squat-assist.css">
+</head>
+<body>
+  <div id="wb-root"><div class="wb-loading-screen">正在加载小程序源码…</div></div>
+
+  <script type="text/x-template" id="wb-shell-template">
+    <div class="wb-app" :class="{ 'drawer-open': drawer, 'show-inspector': inspector, 'is-embed': embed }">
+      <!-- 页面目录 -->
+      <aside class="wb-side">
+        <div class="wb-brand">
+          <div class="wb-brand-row">
+            <div class="wb-logo">宸</div>
+            <div>
+              <div class="wb-brand-name">宸炼 · 网页端</div>
+              <div class="wb-brand-sub">始于修身，终于康健</div>
+            </div>
+          </div>
+          <div class="wb-mode">
+            <i class="wb-dot" :class="{ 'is-bundle': mode === 'bundle' }"></i>
+            <span v-if="mode === 'live'">实时模式：直接读取小程序源码，改完代码刷新即同步</span>
+            <span v-else>打包模式：读取 dist/mp-bundle.js，改代码后需重新运行 build.py</span>
+          </div>
+        </div>
+        <nav class="wb-nav">
+          <div class="wb-group" v-for="g in directory" :key="g.title">
+            <div class="wb-group-title">{{ g.title }}</div>
+            <button class="wb-link" v-for="item in g.items" :key="item.route"
+                    :class="{ 'is-active': top && top.route === item.route }" @click="openRoute(item)">
+              <span>{{ routeTitle(item) }}</span>
+              <span class="wb-link-tag" v-if="router.isTab(item.route)">Tab</span>
+            </button>
+          </div>
+        </nav>
+        <div class="wb-tools">
+          <button class="wb-btn is-primary is-full" @click="loadDemo">载入演示数据</button>
+          <button class="wb-btn" @click="exportData">导出数据</button>
+          <button class="wb-btn" @click="importData">导入数据</button>
+          <button class="wb-btn is-danger is-full" @click="resetAll">清空数据（模拟首次安装）</button>
+        </div>
+      </aside>
+      <div class="wb-drawer-mask" v-if="drawer" @click="drawer = false"></div>
+
+      <!-- 手机 -->
+      <main class="wb-stage">
+        <div class="wb-stage-meta" v-if="top">
+          <code>{{ top.route }}</code>
+          <button class="wb-btn wb-inspector-toggle" style="padding:4px 10px" @click="inspector = !inspector">{{ inspector ? '关闭调试面板' : '调试面板' }}</button>
+        </div>
+        <div class="wb-device">
+          <div class="wb-screen" :style="{ background: top ? pageBg(top) : '#000' }">
+            <div class="wb-statusbar" :style="{ color: nav.fg }">
+              <span>{{ clock }}</span>
+              <i class="wb-island"></i>
+              <span class="wb-status-icons">
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+                <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="8" rx="2" fill="currentColor"/><rect x="24" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".5"/></svg>
+              </span>
+            </div>
+
+            <div class="wb-navbar" v-if="top && !nav.custom" :style="{ background: nav.bg, color: nav.fg }">
+              <button class="wb-nav-back" v-if="canBack" @click="back" aria-label="返回">
+                <svg viewBox="0 0 12 21" fill="none"><path d="M10.5 1.5L2 10.5l8.5 9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <span class="wb-nav-title">{{ nav.title }}</span>
+            </div>
+            <div class="wb-capsule" v-if="top" :class="{ 'is-dark': nav.fg === '#000000' }">
+              <button title="页面目录" @click="drawer = true">
+                <svg width="20" height="6" viewBox="0 0 20 6" fill="currentColor"><circle cx="3" cy="3" r="2.2"/><circle cx="10" cy="3" r="3"/><circle cx="17" cy="3" r="2.2"/></svg>
+              </button>
+              <i></i>
+              <button title="回到启动页" @click="home">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.2" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="9" r="2.6" fill="currentColor"/></svg>
+              </button>
+            </div>
+
+            <div class="wb-pages">
+              <div v-for="p in rendered" :key="p.__uid" class="mp-page-wrap" :class="wrapClass(p)"
+                   v-show="p === top || leaving.indexOf(p) >= 0" :data-mp-uid="p.__uid">
+                <div class="mp-page" :data-mp-page="p.route">
+                  <component :is="p.__comp" :inst="p"></component>
+                </div>
+              </div>
+            </div>
+
+            <div class="wb-tabbar" v-if="isTabPage" :style="{ background: tabBar.backgroundColor }">
+              <button class="wb-tab" v-for="item in tabBar.list" :key="item.pagePath" @click="switchTab(item)" :style="{ color: tabColor(item) }">
+                <img :src="tabIcon(item)" alt="">
+                <span>{{ item.text }}</span>
+              </button>
+            </div>
+            <i class="wb-home-indicator"></i>
+
+            <!-- 浮层 -->
+            <div class="wb-errors" v-if="ui.errors.length">
+              <div class="wb-error" v-for="e in ui.errors.slice(0, 3)" :key="e.id">
+                <b>运行时错误 · {{ e.where }}</b>{{ e.msg }}
+                <button @click="dismissError(e)">✕</button>
+              </div>
+            </div>
+            <div class="wb-mask" v-if="(ui.toast && ui.toast.mask) || (ui.loading && ui.loading.mask)"></div>
+            <div class="wb-toast" v-if="ui.loading"><i class="wb-spinner"></i>{{ ui.loading.title }}</div>
+            <div class="wb-toast" v-else-if="ui.toast" :class="{ 'is-text': ui.toast.icon === 'none' && !ui.toast.image }">
+              <img v-if="ui.toast.image" class="wb-toast-icon" :src="asset(ui.toast.image)" alt="">
+              <i v-else-if="ui.toast.icon === 'loading'" class="wb-spinner"></i>
+              <svg v-if="!ui.toast.image && ui.toast.icon === 'success'" class="wb-toast-icon" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="18" stroke="#c6ff3d" stroke-width="2"/><path d="M11.5 19.5l5 5 10-11" stroke="#c6ff3d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg v-if="!ui.toast.image && ui.toast.icon === 'error'" class="wb-toast-icon" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="18" stroke="#ff5a4e" stroke-width="2"/><path d="M13 13l12 12M25 13L13 25" stroke="#ff5a4e" stroke-width="2.6" stroke-linecap="round"/></svg>
+              <span>{{ ui.toast.title }}</span>
+            </div>
+
+            <template v-if="ui.modal">
+              <div class="wb-mask is-dim"></div>
+              <div class="wb-modal" role="dialog">
+                <div class="wb-modal-body">
+                  <div class="wb-modal-title" v-if="ui.modal.title">{{ ui.modal.title }}</div>
+                  <div class="wb-modal-content" v-if="ui.modal.content">{{ ui.modal.content }}</div>
+                  <input class="wb-modal-input" v-if="ui.modal.editable" v-model="modalInput" :placeholder="ui.modal.placeholderText">
+                </div>
+                <div class="wb-modal-actions">
+                  <button v-if="ui.modal.showCancel" @click="modalCancel" :style="{ color: ui.modal.cancelColor || '' }">{{ ui.modal.cancelText }}</button>
+                  <button class="is-confirm" @click="modalOk" :style="{ color: ui.modal.confirmColor || '' }">{{ ui.modal.confirmText }}</button>
+                </div>
+              </div>
+            </template>
+
+            <template v-if="ui.actionSheet">
+              <div class="wb-mask is-dim" @click="sheetCancel"></div>
+              <div class="wb-sheet">
+                <div class="wb-sheet-alert" v-if="ui.actionSheet.alertText">{{ ui.actionSheet.alertText }}</div>
+                <button class="wb-sheet-item" v-for="(it, i) in ui.actionSheet.itemList" :key="i" @click="sheetPick(i)" :style="{ color: ui.actionSheet.itemColor || '' }">{{ it }}</button>
+                <div class="wb-sheet-gap"></div>
+                <button class="wb-sheet-item" style="border:0" @click="sheetCancel">取消</button>
+              </div>
+            </template>
+
+            <template v-if="ui.picker">
+              <div class="wb-mask is-dim" @click="ui.picker.cancel()"></div>
+              <picker-sheet :cfg="ui.picker" :key="ui.picker.title + ui.picker.columns.length"></picker-sheet>
+            </template>
+
+            <div class="wb-preview" v-if="ui.preview" @click.self="ui.preview = null">
+              <img :src="ui.preview.urls[ui.preview.index]" alt="预览" @click="ui.preview = null">
+              <div class="wb-preview-bar">
+                <button v-if="ui.preview.urls.length > 1" @click="previewMove(-1)">上一张</button>
+                <a :href="ui.preview.urls[ui.preview.index]" download="宸炼.png"><button>下载图片</button></a>
+                <button v-if="ui.preview.urls.length > 1" @click="previewMove(1)">下一张</button>
+                <button @click="ui.preview = null">关闭</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 调试面板 -->
+      <aside class="wb-inspector">
+        <div class="wb-tabs">
+          <button :class="{ 'is-on': tab === 'page' }" @click="tab = 'page'">当前页面</button>
+          <button :class="{ 'is-on': tab === 'storage' }" @click="tab = 'storage'">本地存储</button>
+          <button :class="{ 'is-on': tab === 'errors' }" @click="tab = 'errors'">错误 {{ ui.errors.length ? '(' + ui.errors.length + ')' : '' }}</button>
+          <button :class="{ 'is-on': tab === 'about' }" @click="tab = 'about'">说明</button>
+        </div>
+        <div class="wb-pane" v-if="tab === 'page'">
+          <dl class="wb-kv" v-if="top">
+            <dt>路由</dt><dd>{{ top.route }}</dd>
+            <dt>参数</dt><dd>{{ queryText(top) }}</dd>
+            <dt>源码</dt><dd>{{ top.route }}.js / .wxml / .wxss</dd>
+          </dl>
+          <div class="wb-sec-title">页面栈（getCurrentPages）</div>
+          <div class="wb-stack-item" v-for="(p, i) in stack" :key="p.__uid" :class="{ 'is-top': p === top }">{{ i }} · {{ p.route }}</div>
+          <div class="wb-sec-title">this.data</div>
+          <div class="wb-json">
+            <details v-for="row in pageData" :key="row.key">
+              <summary>{{ row.key }} <span>{{ row.type }}</span></summary>
+              <pre>{{ row.text }}</pre>
+            </details>
+          </div>
+        </div>
+        <div class="wb-pane" v-else-if="tab === 'storage'">
+          <p class="wb-note">与小程序 <code>wx.setStorageSync</code> 对应，保存在浏览器 localStorage（前缀 <code>chenlian-mp:</code>）。</p>
+          <div class="wb-json">
+            <details v-for="row in storageList" :key="row.key">
+              <summary>{{ row.key }} <span>{{ row.size }}</span></summary>
+              <pre>{{ prettyRaw(row.raw) }}</pre>
+              <div style="padding:6px 10px;border-top:1px solid var(--shell-line)"><button class="wb-btn is-danger" style="padding:4px 10px" @click="delKey(row.key)">删除</button></div>
+            </details>
+          </div>
+        </div>
+        <div class="wb-pane" v-else-if="tab === 'errors'">
+          <p class="wb-note" v-if="!ui.errors.length">暂无运行时错误。页面脚本抛错时会显示在这里，并同时写入小程序的 <code>errorLogs</code>（与 App.onError 行为一致）。</p>
+          <div class="wb-stack-item" v-for="e in ui.errors" :key="e.id" style="color:#ff8a80">{{ e.where }}<br>{{ e.msg }}</div>
+        </div>
+        <div class="wb-pane" v-else>
+          <p class="wb-note">网页端不是另写一套页面，而是在浏览器里直接运行小程序源码：</p>
+          <p class="wb-note">· <code>.wxml</code> 编译成 Vue 模板<br>· <code>.wxss</code> 加作用域并把 rpx 换算为屏宽/750<br>· <code>wx.*</code> 由 <code>web/runtime/wx-api.js</code> 实现<br>· 页面栈 / tab / 生命周期与小程序一致</p>
+          <p class="wb-note">网页端不可用：微信云开发（同步到云、邀请码、学员绑定）、拍照识别（浏览器跨域）、订阅消息。登录在网页端为本地模拟。</p>
+        </div>
+      </aside>
+
+      <button class="wb-menu-btn" @click="drawer = true" aria-label="页面目录">☰</button>
+    </div>
+  </script>
+
+  <script src="vendor/vue.global.prod.js"></script>
+  <script src="runtime/wxml-compiler.js"></script>
+  <script src="runtime/wxss.js"></script>
+  <script src="runtime/core.js"></script>
+  <script src="runtime/router.js"></script>
+  <script src="runtime/wx-api.js"></script>
+  <script src="runtime/components.js"></script>
+  <script src="pose/squat-counter.js"></script>
+  <script src="pose/squat-assist.js"></script>
+  <script src="runtime/demo-data.js"></script>
+  <script src="runtime/shell.js"></script>
+  <!-- 打包模式（file:// 打开或独立部署）：由 python3 web/build.py 生成；实时模式下不存在也没关系 -->
+  <script src="dist/mp-bundle.js" onerror="this.remove()"></script>
+  <script>MP.boot();</script>
+</body>
+</html>

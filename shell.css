@@ -1,0 +1,384 @@
+/* =========================================================
+ * 宸炼 · 网页端
+ *  1) 小程序内置组件的默认样式（全部用 :where 包裹，特异性为 0，页面 WXSS 一定能覆盖）
+ *  2) 预览外壳：目录侧栏 / 手机机身 / 导航栏 / tabBar / 浮层 / 调试面板
+ * ========================================================= */
+
+:root {
+  --shell-bg: #0a0b0d;
+  --shell-panel: #121317;
+  --shell-panel-2: #181a1f;
+  --shell-line: rgba(255, 255, 255, 0.07);
+  --shell-text: #ececf1;
+  --shell-text-2: #9a9aa6;
+  --shell-text-3: #61616c;
+  --shell-brand: #c6ff3d;
+  --shell-brand-ink: #0c0f05;
+  --shell-danger: #ff5a4e;
+  --device-w: 390px;
+  --device-h: 844px;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%;
+  background: var(--shell-bg);
+  color: var(--shell-text);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button { font-family: inherit; }
+
+/* ---------------- 1. 小程序组件默认样式 ---------------- */
+:where(view) { display: block; }
+:where(text) { display: inline; white-space: pre-line; }
+:where(navigator) { display: block; cursor: pointer; }
+:where(picker) { display: block; cursor: pointer; }
+:where(scroll-view) { display: block; width: 100%; position: relative; -webkit-overflow-scrolling: touch; }
+:where(scroll-view.is-y) { overflow-y: auto; overflow-x: hidden; }
+:where(scroll-view.is-x) { overflow-x: auto; overflow-y: hidden; }
+:where(scroll-view.is-x.is-y) { overflow: auto; }
+:where(scroll-view.no-bar)::-webkit-scrollbar { display: none; }
+:where([hidden]) { display: none !important; }
+[v-cloak] { display: none; }
+
+:where(.wx-image) { display: inline-block; width: 320px; height: 240px; overflow: hidden; object-fit: fill; }
+:where(.wx-image--aspectFill) { object-fit: cover; }
+:where(.wx-image--aspectFit) { object-fit: contain; }
+:where(.wx-image--widthFix) { height: auto; }
+:where(.wx-image--heightFix) { width: auto; }
+:where(.wx-image--center) { object-fit: none; }
+:where(.wx-image--top) { object-fit: none; object-position: top; }
+.wx-image:not([src]) { visibility: hidden; }
+
+:where(.wx-input) {
+  display: block; height: 1.4rem; min-height: 1.4rem; width: 100%;
+  border: 0; outline: 0; background: transparent; color: inherit;
+  font: inherit; padding: 0; margin: 0; text-overflow: clip; overflow: hidden; white-space: nowrap;
+}
+:where(.wx-textarea) {
+  display: block; width: 300px; height: 150px; resize: none;
+  border: 0; outline: 0; background: transparent; color: inherit; font: inherit; padding: 0; margin: 0;
+}
+:where(.wx-textarea--auto) { height: auto; min-height: 1.5em; overflow: hidden; }
+.mp-page input::placeholder, .mp-page textarea::placeholder { color: rgba(235, 235, 245, 0.32); }
+
+:where(.wx-button) {
+  position: relative; display: block; margin-left: auto; margin-right: auto;
+  padding-left: 14px; padding-right: 14px; box-sizing: border-box;
+  font-size: 18px; text-align: center; text-decoration: none; line-height: 2.55555556;
+  border-radius: 5px; -webkit-tap-highlight-color: transparent; overflow: hidden;
+  color: #000; background-color: #f8f8f8; border: 0; font-family: inherit; cursor: pointer; user-select: none;
+}
+:where(.wx-button)::after {
+  content: " "; width: 200%; height: 200%; position: absolute; top: 0; left: 0;
+  border: 1px solid rgba(0, 0, 0, 0.2); transform: scale(0.5); transform-origin: 0 0;
+  box-sizing: border-box; border-radius: 10px; pointer-events: none;
+}
+:where(.wx-button--primary) { color: #fff; background-color: #07c160; }
+:where(.wx-button--warn) { color: #fff; background-color: #e64340; }
+:where(.wx-button--mini) { display: inline-block; line-height: 2.3; font-size: 13px; padding: 0 1.34em; width: auto; }
+:where(.wx-button[disabled]) { opacity: 0.6; pointer-events: none; }
+:where(.button-hover) { opacity: 0.82; }
+:where(.navigator-hover) { opacity: 0.7; }
+.wx-button__spinner {
+  display: inline-block; width: 1em; height: 1em; margin-right: 0.4em; vertical-align: -0.12em;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: wb-spin 0.8s linear infinite;
+}
+
+:where(.wx-canvas) { display: block; width: 300px; height: 150px; }
+
+.wx-switch { display: inline-block; vertical-align: middle; cursor: pointer; }
+.wx-switch__track {
+  display: block; position: relative; width: 52px; height: 32px; border-radius: 16px;
+  background: rgba(120, 120, 128, 0.32); transition: background 0.2s;
+}
+.wx-switch.is-on .wx-switch__track { background: #34c759; }
+.wx-switch__knob {
+  position: absolute; top: 2px; left: 2px; width: 28px; height: 28px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); transition: transform 0.2s;
+}
+.wx-switch.is-on .wx-switch__knob { transform: translateX(20px); }
+.wx-switch.is-disabled { opacity: 0.5; cursor: not-allowed; }
+
+.wx-web-view { position: absolute; inset: 0; display: block; background: #fff; }
+.wx-web-view iframe { width: 100%; height: 100%; border: 0; }
+.wx-web-view__open {
+  position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
+  padding: 10px 16px; border-radius: 999px; background: rgba(0, 0, 0, 0.78); color: #fff; font-size: 13px; text-decoration: none; white-space: nowrap;
+}
+.wx-icon { font-style: normal; display: inline-block; }
+
+/* ---------------- 2. 预览外壳 ---------------- */
+.wb-app { display: flex; height: 100vh; height: 100dvh; width: 100vw; }
+
+/* 侧栏 */
+.wb-side {
+  width: 288px; flex-shrink: 0; display: flex; flex-direction: column;
+  background: var(--shell-panel); border-right: 1px solid var(--shell-line);
+}
+.wb-brand { padding: 22px 20px 16px; border-bottom: 1px solid var(--shell-line); }
+.wb-brand-row { display: flex; align-items: center; gap: 12px; }
+.wb-logo {
+  width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
+  background: var(--shell-brand); color: var(--shell-brand-ink); font-weight: 800; font-size: 19px; letter-spacing: -0.5px;
+}
+.wb-brand-name { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; }
+.wb-brand-sub { font-size: 12px; color: var(--shell-text-2); margin-top: 2px; }
+.wb-mode {
+  margin-top: 14px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--shell-text-2);
+  background: var(--shell-panel-2); border: 1px solid var(--shell-line); border-radius: 10px; padding: 8px 10px; line-height: 1.45;
+}
+.wb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--shell-brand); flex-shrink: 0; box-shadow: 0 0 0 3px rgba(198, 255, 61, 0.15); }
+.wb-dot.is-bundle { background: #5ac8fa; box-shadow: 0 0 0 3px rgba(90, 200, 250, 0.15); }
+
+.wb-nav { flex: 1; overflow-y: auto; padding: 10px 10px 16px; }
+.wb-nav::-webkit-scrollbar { width: 6px; }
+.wb-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 3px; }
+.wb-group { margin-top: 12px; }
+.wb-group-title { font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--shell-text-3); padding: 6px 10px; }
+.wb-link {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;
+  padding: 8px 10px; border-radius: 9px; border: 0; background: transparent; color: var(--shell-text-2);
+  font-size: 13.5px; text-align: left; cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.wb-link:hover { background: rgba(255, 255, 255, 0.04); color: var(--shell-text); }
+.wb-link.is-active { background: rgba(198, 255, 61, 0.1); color: var(--shell-brand); }
+.wb-link.is-disabled { opacity: 0.4; cursor: not-allowed; }
+.wb-link-tag { font-size: 10.5px; color: var(--shell-text-3); border: 1px solid var(--shell-line); border-radius: 6px; padding: 1px 6px; flex-shrink: 0; }
+.wb-link.is-active .wb-link-tag { color: var(--shell-brand); border-color: rgba(198, 255, 61, 0.3); }
+
+.wb-tools { padding: 14px; border-top: 1px solid var(--shell-line); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wb-btn {
+  border: 1px solid var(--shell-line); background: var(--shell-panel-2); color: var(--shell-text);
+  border-radius: 10px; padding: 9px 10px; font-size: 12.5px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.wb-btn:hover { border-color: rgba(255, 255, 255, 0.18); }
+.wb-btn.is-primary { background: var(--shell-brand); color: var(--shell-brand-ink); border-color: transparent; font-weight: 600; }
+.wb-btn.is-primary:hover { filter: brightness(1.05); }
+.wb-btn.is-danger { color: var(--shell-danger); }
+.wb-btn.is-full { grid-column: 1 / -1; }
+
+/* 舞台 + 机身 */
+.wb-stage {
+  flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+  background:
+    radial-gradient(900px 520px at 50% 18%, rgba(198, 255, 61, 0.07), transparent 65%),
+    radial-gradient(1px 1px at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--shell-bg);
+}
+.wb-stage-meta {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  font-size: 12px; color: var(--shell-text-3); white-space: nowrap; display: flex; gap: 10px; align-items: center;
+}
+.wb-stage-meta code { color: var(--shell-text-2); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; }
+.wb-device {
+  position: relative; width: calc(var(--device-w) + 24px); height: calc(var(--device-h) + 24px);
+  padding: 12px; border-radius: 58px; background: #1b1c1f;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 0 0 2px #050506, 0 40px 90px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.wb-screen {
+  position: relative; width: var(--device-w); height: var(--device-h); border-radius: 46px; overflow: hidden;
+  background: #000; display: flex; flex-direction: column; isolation: isolate;
+  /* 小程序 rpx：屏幕宽度 = 750rpx */
+  --rpx: calc(var(--device-w) / 750);
+}
+
+.wb-statusbar {
+  position: absolute; top: 0; left: 0; right: 0; height: 47px; z-index: 30; pointer-events: none;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 30px 0 36px;
+  font-size: 15px; font-weight: 600; color: #fff;
+}
+.wb-island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 120px; height: 34px; border-radius: 20px; background: #000; }
+.wb-status-icons { display: flex; gap: 6px; align-items: center; }
+
+.wb-navbar {
+  position: relative; z-index: 20; flex-shrink: 0; padding-top: 47px; height: calc(47px + 44px);
+  display: flex; align-items: center; justify-content: center;
+}
+.wb-nav-title { font-size: 17px; font-weight: 600; max-width: 56%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wb-nav-back {
+  position: absolute; left: 4px; bottom: 0; height: 44px; width: 44px; display: grid; place-items: center;
+  background: none; border: 0; color: inherit; cursor: pointer; padding: 0;
+}
+.wb-nav-back svg { width: 12px; height: 21px; }
+.wb-capsule {
+  position: absolute; right: 7px; top: calc(47px + 6px); height: 32px; width: 87px; border-radius: 16px; z-index: 40;
+  display: flex; align-items: center; justify-content: space-around; padding: 0 2px;
+  border: 0.5px solid rgba(255, 255, 255, 0.25); background: rgba(0, 0, 0, 0.18); color: #fff;
+}
+.wb-capsule.is-dark { border-color: rgba(0, 0, 0, 0.15); background: rgba(255, 255, 255, 0.6); color: #000; }
+.wb-capsule i { width: 1px; height: 18px; background: currentColor; opacity: 0.25; }
+.wb-capsule button { background: none; border: 0; color: inherit; cursor: pointer; padding: 4px 8px; display: grid; place-items: center; }
+
+.wb-pages { position: relative; flex: 1; min-height: 0; }
+.mp-page-wrap { position: absolute; inset: 0; transform: translateZ(0); overflow: hidden; }
+.mp-page-wrap.anim-enter { animation: wb-enter 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.mp-page-wrap.anim-fade { animation: wb-fade 0.2s ease-out; }
+.mp-page-wrap.anim-leave { animation: wb-leave 0.24s ease-in forwards; z-index: 5; pointer-events: none; }
+.mp-page {
+  position: absolute; inset: 0; overflow-y: auto !important; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+}
+.mp-page::-webkit-scrollbar { width: 0; height: 0; }
+.wb-pages.has-custom-nav .mp-page { padding-top: 0; }
+
+.wb-tabbar {
+  position: relative; z-index: 20; flex-shrink: 0; display: flex; padding-bottom: 22px;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+}
+.wb-tab {
+  flex: 1; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  background: none; border: 0; cursor: pointer; font-size: 10px; padding: 0;
+}
+.wb-tab img { width: 24px; height: 24px; }
+.wb-home-indicator { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.6); z-index: 50; pointer-events: none; }
+
+/* 浮层（都限定在手机屏幕内） */
+.wb-mask { position: absolute; inset: 0; z-index: 100; }
+.wb-mask.is-dim { background: rgba(0, 0, 0, 0.55); animation: wb-fade 0.18s ease-out; }
+.wb-toast {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); z-index: 120;
+  min-width: 120px; max-width: 72%; padding: 18px 16px 14px; border-radius: 14px;
+  background: rgba(30, 30, 32, 0.94); color: #fff; text-align: center; font-size: 14px; line-height: 1.45;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); backdrop-filter: blur(12px); animation: wb-pop 0.18s ease-out; pointer-events: none;
+}
+.wb-toast.is-text { padding: 11px 16px; min-width: 0; border-radius: 10px; }
+.wb-toast-icon { display: block; margin: 0 auto 10px; width: 38px; height: 38px; }
+.wb-spinner { display: block; margin: 0 auto 10px; width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); border-top-color: #fff; animation: wb-spin 0.8s linear infinite; }
+
+.wb-modal {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 300px; z-index: 110;
+  background: #2a2b2f; border-radius: 16px; overflow: hidden; color: #fff; animation: wb-pop 0.2s ease-out;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.wb-modal-body { padding: 26px 22px 22px; text-align: center; }
+.wb-modal-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+.wb-modal-content { font-size: 14.5px; color: rgba(255, 255, 255, 0.7); line-height: 1.6; white-space: pre-line; max-height: 46vh; overflow-y: auto; word-break: break-word; }
+.wb-modal-input { margin-top: 12px; width: 100%; border: 0; border-radius: 8px; padding: 10px 12px; background: rgba(255, 255, 255, 0.08); color: #fff; font-size: 15px; outline: none; }
+.wb-modal-actions { display: flex; border-top: 0.5px solid rgba(255, 255, 255, 0.1); }
+.wb-modal-actions button {
+  flex: 1; height: 50px; border: 0; background: none; color: rgba(255, 255, 255, 0.85); font-size: 16px; cursor: pointer;
+}
+.wb-modal-actions button + button { border-left: 0.5px solid rgba(255, 255, 255, 0.1); }
+.wb-modal-actions .is-confirm { color: var(--shell-brand); font-weight: 600; }
+.wb-modal-actions button:active { background: rgba(255, 255, 255, 0.06); }
+
+.wb-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 110; background: #1f2023; color: #fff;
+  border-radius: 16px 16px 0 0; padding-bottom: 22px; animation: wb-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.wb-sheet-item {
+  display: block; width: 100%; border: 0; background: none; color: #fff; height: 56px; font-size: 17px; cursor: pointer;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+}
+.wb-sheet-item:active { background: rgba(255, 255, 255, 0.05); }
+.wb-sheet-alert { font-size: 13px; color: rgba(255, 255, 255, 0.5); text-align: center; padding: 14px 20px; border-bottom: 0.5px solid rgba(255, 255, 255, 0.08); }
+.wb-sheet-gap { height: 8px; background: rgba(0, 0, 0, 0.3); }
+
+.wb-picker-bar { display: flex; justify-content: space-between; align-items: center; height: 52px; padding: 0 8px; border-bottom: 0.5px solid rgba(255, 255, 255, 0.08); }
+.wb-picker-bar button { border: 0; background: none; font-size: 16px; padding: 10px 14px; cursor: pointer; color: rgba(255, 255, 255, 0.6); }
+.wb-picker-bar .is-confirm { color: var(--shell-brand); font-weight: 600; }
+.wb-picker-title { font-size: 15px; color: rgba(255, 255, 255, 0.85); }
+.wb-picker-cols { position: relative; display: flex; height: 240px; padding: 0 12px; }
+.wb-picker-cols::before {
+  content: ""; position: absolute; left: 12px; right: 12px; top: 96px; height: 48px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07); pointer-events: none;
+}
+.wb-picker-cols::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#1f2023, rgba(31, 32, 35, 0) 38%, rgba(31, 32, 35, 0) 62%, #1f2023);
+}
+.wb-picker-col { flex: 1; overflow-y: auto; scroll-snap-type: y mandatory; padding: 96px 0; scrollbar-width: none; }
+.wb-picker-col::-webkit-scrollbar { display: none; }
+.wb-picker-opt {
+  height: 48px; line-height: 48px; text-align: center; font-size: 17px; color: rgba(255, 255, 255, 0.5);
+  scroll-snap-align: center; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 6px;
+}
+.wb-picker-opt.is-on { color: #fff; font-weight: 600; }
+
+.wb-preview { position: absolute; inset: 0; z-index: 130; background: #000; display: flex; align-items: center; justify-content: center; animation: wb-fade 0.18s; }
+.wb-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.wb-preview-bar { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 12px; }
+.wb-preview-bar button { border: 0; border-radius: 999px; padding: 9px 16px; background: rgba(255, 255, 255, 0.14); color: #fff; font-size: 13px; cursor: pointer; }
+
+.wb-errors { position: absolute; top: 50px; left: 10px; right: 10px; z-index: 140; display: flex; flex-direction: column; gap: 6px; }
+.wb-error {
+  background: rgba(255, 69, 58, 0.95); color: #fff; border-radius: 10px; padding: 8px 32px 8px 12px; font-size: 12px; line-height: 1.4;
+  position: relative; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); word-break: break-all;
+}
+.wb-error b { display: block; font-size: 11px; opacity: 0.85; font-weight: 600; }
+.wb-error button { position: absolute; right: 6px; top: 6px; border: 0; background: none; color: #fff; font-size: 14px; cursor: pointer; }
+
+/* 调试面板 */
+.wb-inspector {
+  width: 340px; flex-shrink: 0; background: var(--shell-panel); border-left: 1px solid var(--shell-line);
+  display: flex; flex-direction: column; min-height: 0;
+}
+.wb-tabs { display: flex; gap: 4px; padding: 12px 12px 0; border-bottom: 1px solid var(--shell-line); }
+.wb-tabs button {
+  border: 0; background: none; color: var(--shell-text-2); font-size: 12.5px; padding: 8px 10px 10px; cursor: pointer; border-bottom: 2px solid transparent;
+}
+.wb-tabs button.is-on { color: var(--shell-text); border-bottom-color: var(--shell-brand); }
+.wb-pane { flex: 1; overflow-y: auto; padding: 14px; font-size: 12.5px; color: var(--shell-text-2); }
+.wb-kv { display: grid; grid-template-columns: 64px 1fr; gap: 6px 10px; margin-bottom: 14px; }
+.wb-kv dt { color: var(--shell-text-3); }
+.wb-kv dd { margin: 0; color: var(--shell-text); word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; }
+.wb-sec-title { font-size: 11px; letter-spacing: 1px; color: var(--shell-text-3); margin: 16px 0 8px; font-weight: 600; }
+.wb-json details { border: 1px solid var(--shell-line); border-radius: 8px; margin-bottom: 6px; background: var(--shell-panel-2); }
+.wb-json summary { cursor: pointer; padding: 7px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; color: var(--shell-text); display: flex; justify-content: space-between; gap: 8px; }
+.wb-json summary span { color: var(--shell-text-3); }
+.wb-json pre { margin: 0; padding: 8px 10px; border-top: 1px solid var(--shell-line); max-height: 280px; overflow: auto; font-size: 11px; line-height: 1.5; color: #b8c3a0; white-space: pre-wrap; word-break: break-all; }
+.wb-stack-item { padding: 6px 10px; border-radius: 8px; background: var(--shell-panel-2); margin-bottom: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; color: var(--shell-text); }
+.wb-stack-item.is-top { outline: 1px solid rgba(198, 255, 61, 0.35); }
+.wb-note { line-height: 1.6; color: var(--shell-text-3); }
+.wb-note code { color: var(--shell-text-2); }
+
+.wb-loading-screen { position: fixed; inset: 0; display: grid; place-items: center; color: var(--shell-text-2); font-size: 14px; }
+.wb-fatal { max-width: 560px; margin: 12vh auto; padding: 28px; border: 1px solid var(--shell-line); border-radius: 16px; background: var(--shell-panel); line-height: 1.7; font-size: 14px; color: var(--shell-text-2); }
+.wb-fatal h2 { color: var(--shell-text); margin: 0 0 10px; font-size: 18px; }
+.wb-fatal code { background: rgba(255, 255, 255, 0.06); padding: 2px 6px; border-radius: 6px; color: var(--shell-text); }
+
+.wb-menu-btn { display: none; }
+
+.wb-inspector-toggle { display: none; }
+/* 中等屏：隐藏调试面板（可用顶部按钮呼出） */
+@media (max-width: 1240px) { .wb-inspector-toggle { display: inline-block; } .wb-inspector { display: none; } .wb-app.show-inspector .wb-inspector { display: flex; position: fixed; right: 0; top: 0; bottom: 0; z-index: 200; box-shadow: -20px 0 40px rgba(0,0,0,.4); } }
+/* 矮屏：机身按可用高度收缩（不用 transform 缩放，保证坐标计算正确） */
+@media (max-height: 920px) { :root { --device-h: calc(100vh - 64px); } }
+
+/* 手机：全屏运行，侧栏改抽屉 */
+@media (max-width: 760px) {
+  :root { --device-w: 100vw; --device-h: 100dvh; }
+  .wb-side { position: fixed; left: 0; top: 0; bottom: 0; z-index: 300; transform: translateX(-105%); transition: transform 0.25s; box-shadow: 20px 0 40px rgba(0, 0, 0, 0.5); }
+  .wb-app.drawer-open .wb-side { transform: none; }
+  .wb-stage { background: #000; }
+  .wb-stage-meta { display: none; }
+  .wb-device { width: 100vw; height: 100dvh; padding: 0; border-radius: 0; box-shadow: none; background: #000; }
+  .wb-screen { border-radius: 0; }
+  .wb-statusbar, .wb-home-indicator { display: none; }
+  .wb-navbar { padding-top: env(safe-area-inset-top, 0px); height: calc(44px + env(safe-area-inset-top, 0px)); }
+  .wb-capsule { top: calc(env(safe-area-inset-top, 0px) + 6px); }
+  .wb-tabbar { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .wb-menu-btn {
+    display: grid; place-items: center; position: fixed; left: 10px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 250;
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,.14); background: rgba(20,20,22,.88); color: #fff; cursor: pointer; backdrop-filter: blur(8px);
+  }
+  .wb-drawer-mask { position: fixed; inset: 0; z-index: 290; background: rgba(0, 0, 0, 0.5); }
+}
+
+/* 嵌入模式：只显示手机屏幕 */
+.wb-app.is-embed { --device-h: 100vh; }
+.wb-app.is-embed .wb-side, .wb-app.is-embed .wb-inspector, .wb-app.is-embed .wb-stage-meta, .wb-app.is-embed .wb-menu-btn { display: none !important; }
+.wb-app.is-embed .wb-stage { background: #000; align-items: flex-start; justify-content: flex-start; }
+.wb-app.is-embed .wb-device { width: var(--device-w); height: var(--device-h); padding: 0; border-radius: 0; box-shadow: none; background: #000; }
+.wb-app.is-embed .wb-screen { border-radius: 0; }
+
+@keyframes wb-spin { to { transform: rotate(360deg); } }
+@keyframes wb-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wb-pop { from { opacity: 0; transform: translate(-50%, -50%) scale(0.94); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes wb-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes wb-enter { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes wb-leave { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .mp-page-wrap, .wb-sheet, .wb-modal, .wb-toast { animation: none !important; } }
